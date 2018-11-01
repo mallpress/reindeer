@@ -1,6 +1,5 @@
 import { Token } from "../token";
 import { TokenType } from "../tokentype";
-import { ParseResult } from "./parseresult";
 import { ReferenceType } from "../ast/referencetype";
 import { BooleanOperator } from "../ast/booleanoperator";
 import { Condition } from "../ast/condition";
@@ -17,45 +16,32 @@ export class Parser {
 
     public parse(tokens: Token[]) {
         var stream = new TokenStream(tokens);
-
-        let currentPos = 0;
-        while (currentPos < tokens.length) {
-            let currentToken = tokens[currentPos];
+        while (stream.hasNext()) {
+            let currentToken = stream.consume();
             switch (currentToken.type) {
                 case TokenType.If:
                     let finished = false
                     let conds = []
-                    while (currentPos < tokens.length) {
-                        currentPos++;
-                        let cond = this.parseConditional(tokens, currentPos)
-                        conds.push(cond.node)
-                        currentPos+= cond.consumed
-                        currentToken = tokens[currentPos];
+                    while (stream.hasNext()) {
+                        let cond = this.parseConditional(stream)
+                        conds.push(cond)
+                        currentToken = stream.consume();
                         switch(currentToken.type) {
                             case TokenType.Then:
-                                currentPos++;
-                                let operations = this.parseOperations(tokens, currentPos)
-                                currentPos+= operations.consumed
-                                let branch = new Branch(conds, operations.node);
+                                let operations = this.parseOperations(stream)
+                                let branch = new Branch(conds, operations);
                                 console.log(JSON.stringify(branch, null, "\t"))
-
-
-
                                 finished = true
                                 break;
                             case TokenType.Or:
-                                currentPos++;
-                                cond = this.parseConditional(tokens, currentPos)
-                                conds.push(cond.node)
-                                currentPos+= cond.consumed
-                                currentToken = tokens[currentPos];
+                                cond = this.parseConditional(stream)
+                                conds.push(cond)
+                                currentToken = stream.consume();
                                 break;
                             case TokenType.And:
-                                currentPos++;
-                                cond = this.parseConditional(tokens, currentPos)
-                                conds.push(cond.node)
-                                currentPos+= cond.consumed
-                                currentToken = tokens[currentPos];
+                                cond = this.parseConditional(stream)
+                                conds.push(cond)
+                                currentToken = stream.consume();
                                 break;
                         }
                         if(finished) break;
@@ -65,14 +51,13 @@ export class Parser {
         }
     }
 
-    private parseConditional(tokens: Token[], currentPos: number): ParseResult<Condition> {
+    private parseConditional(stream: TokenStream): Condition {
         let refType = ReferenceType.Pipe;
         let reference = "";
         let property = "";
         let operator = BooleanOperator.DoubleEquals
         let value = null;
-        let consumed = 0;
-        let currentToken = tokens[currentPos]
+        let currentToken = stream.consume()
         switch (currentToken.type) {
             case TokenType.Pipe:
                 refType = ReferenceType.Pipe
@@ -83,8 +68,7 @@ export class Parser {
             default:
                 throw new ParserError(`parse error, reference type expected, found ${currentToken.value}`, currentToken.position)
         }
-        consumed++;
-        currentToken = tokens[currentPos + consumed]
+        currentToken = stream.consume()
         switch (currentToken.type) {
             case TokenType.String:
                 reference = currentToken.value
@@ -93,8 +77,7 @@ export class Parser {
                 throw new ParserError(`parse error, reference expected, found ${currentToken.value}`, currentToken.position)
         }
 
-        consumed++;
-        currentToken = tokens[currentPos + consumed]
+        currentToken = stream.consume()
         switch (currentToken.type) {
             case TokenType.Diameter:
                 property = currentToken.value
@@ -102,9 +85,7 @@ export class Parser {
             default:
                 throw new ParserError(`parse error, property expected, found ${currentToken.value}`, currentToken.position)
         }
-
-        consumed++;
-        currentToken = tokens[currentPos + consumed]
+        currentToken = stream.consume();
         switch (currentToken.type) {
             case TokenType.DoubleEquals:
                 operator = BooleanOperator.DoubleEquals
@@ -127,9 +108,7 @@ export class Parser {
             default:
                 throw new ParserError(`parse error, bool operator expected, found ${currentToken.value}`, currentToken.position)
         }
-        
-        consumed++;
-        currentToken = tokens[currentPos + consumed]
+        currentToken = stream.consume();
         switch (currentToken.type) {
             case TokenType.Number:
                 value = currentToken.value
@@ -137,58 +116,49 @@ export class Parser {
             default:
                 throw new ParserError(`parse error, value expected, found ${currentToken.value}`, currentToken.position)
         }
-
-        consumed++;
-
-        return new ParseResult(new Condition(refType, reference, property, operator, value), consumed);
+        return new Condition(refType, reference, property, operator, value);
     }   
 
-    private parseOperations(tokens: Token[], currentPos: number): ParseResult<Sequence> {
-        let consumed = 0;
+    private parseOperations(stream: TokenStream): Sequence {
         let seq = new Sequence()
-        while (currentPos + consumed < tokens.length) {
-            let op = this.parseOperation(tokens, currentPos + consumed)
-            consumed += op.consumed
-            seq.nodes.push(op.node)
-            let nextToken = tokens[currentPos + consumed + 1]
-            if(nextToken && nextToken.type !== TokenType.And) {
+        while (stream.hasNext()) {
+            let op = this.parseOperation(stream)
+            seq.nodes.push(op)
+            if(!stream.hasNext()) break;
+            let nextToken = stream.peek()
+            if(nextToken.type !== TokenType.And) {
                 break;
             }
-            consumed++ 
+            stream.consume();
         }
-        return new ParseResult(seq, consumed);
+        return seq;
     }
 
-    private parseOperation(tokens: Token[], currentPos: number): ParseResult<Operation> {
+    private parseOperation(stream: TokenStream): Operation {
         let decision = "";
         let outcome = "";
-        let currentToken = tokens[currentPos];
+        let currentToken = stream.consume();
         if(currentToken.type !== TokenType.Decision) {
             throw new ParserError(`parse error, decision expected, found ${currentToken.value}`, currentToken.position)
         }
 
-        currentPos++
-        currentToken = tokens[currentPos];
+        currentToken = stream.consume();
         if(currentToken.type !== TokenType.String) {
             throw new ParserError(`parse error, decision name expected, found ${currentToken.value}`, currentToken.position)
         }
         decision = currentToken.value
 
-        currentPos++
-        currentToken = tokens[currentPos];
+        currentToken = stream.consume();
         if(currentToken.type !== TokenType.Equals) {
             throw new ParserError(`parse error, equals operator expected, found ${currentToken.value}`, currentToken.position)
         }
 
-        currentPos++
-        currentToken = tokens[currentPos];
+        currentToken = stream.consume();
         if(currentToken.type !== TokenType.String) {
             throw new ParserError(`parse error, outcome expected, found ${currentToken.value}`, currentToken.position)
         }
 
-        outcome = currentToken.value
-        currentPos++
-        
-        return new ParseResult(new Operation(decision, outcome), 4);
+        outcome = currentToken.value        
+        return new Operation(decision, outcome);
     }
 }

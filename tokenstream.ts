@@ -7,12 +7,14 @@ export class TokenStream {
         this.tokens = tokens
     }
 
-    public peek() : Token {
-        return this.tokens[this.position + 1]
+    public peek(count: number = 0) : Token {
+        return this.tokens[this.position + count]
     }
 
-    public consume() : void {
-        this.position++;
+    public consume(count: number = 1) : Token {
+        let prevValue = this.position;
+        this.position+= count;
+        return this.tokens[prevValue]
     }
 
     public hasNext() : boolean {
