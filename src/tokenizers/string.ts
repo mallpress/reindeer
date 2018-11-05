@@ -8,12 +8,17 @@ export class StringTokenizer extends BaseTokenizer {
         super(TokenType.String, "String")
     }
     public nextToken(input: string, current: number): TokenResult | null {
-        if (input[current] === '"') {
+        let prevChar = null;
+
+        let openChar = null;
+        let char = input[current];
+        if (char === '"' || char === "'") {
+            openChar = char;
             let value = '';
             let consumedChars = 0;
             consumedChars++;
-            let char = input[current + consumedChars];
-            while (char !== '"') {
+            char = input[current + consumedChars];
+            while (char !== openChar) {
                 if (char === undefined) {
                     throw new TypeError("unterminated string ");
                 }

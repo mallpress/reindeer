@@ -6,6 +6,7 @@ import { StringTokenizer } from "./tokenizers/string";
 import { SymbolTokenizer } from "./tokenizers/symbol";
 import { WordTokenizer } from "./tokenizers/word";
 import { NumberTokenizer } from "./tokenizers/number";
+import { VariableTokenizer } from "./tokenizers/variable";
 
 export class Tokenizer {
     private tokenizers: BaseTokenizer[]
@@ -17,7 +18,6 @@ export class Tokenizer {
             new PatternTokenizer(TokenType.ParenClose, "Paren Close", /\)/),
             new PatternTokenizer(TokenType.ParenClose, "Brace Open", /\{/),
             new PatternTokenizer(TokenType.ParenClose, "Brace Close", /\}/),
-            //new PatternTokenizer(TokenType.Number, "Number", /[0-9]/),
             new NumberTokenizer(),
             new StringTokenizer(),
             new SymbolTokenizer(TokenType.Not, "!"),
@@ -48,7 +48,7 @@ export class Tokenizer {
             new WordTokenizer(TokenType.LessThanEqual, "is less than or equal to"),
             new WordTokenizer(TokenType.GreaterThan, "is greater than"),
             new WordTokenizer(TokenType.LessThan, "is less than"),
-            new PatternTokenizer(TokenType.Text, "Text", /[a-z]i/),
+            new VariableTokenizer(),
         ];
     }
 
