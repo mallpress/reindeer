@@ -22,9 +22,9 @@ export class Parser {
                 case TokenType.If:
                     let finished = false
                     let conds = []
+                    let cond = this.parseConditional(stream)
+                    conds.push(cond)
                     while (stream.hasNext()) {
-                        let cond = this.parseConditional(stream)
-                        conds.push(cond)
                         currentToken = stream.consume();
                         switch(currentToken.type) {
                             case TokenType.Then:
@@ -36,13 +36,13 @@ export class Parser {
                             case TokenType.Or:
                                 cond = this.parseConditional(stream)
                                 conds.push(cond)
-                                currentToken = stream.consume();
                                 break;
                             case TokenType.And:
                                 cond = this.parseConditional(stream)
                                 conds.push(cond)
-                                currentToken = stream.consume();
                                 break;
+                            default:
+                                throw new ParserError(`could not parse conditional expected then, and or or, got ${currentToken.value}`, currentToken.position)
                         }
                         if(finished) break;
                     }

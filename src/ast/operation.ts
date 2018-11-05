@@ -6,7 +6,6 @@ export class Operation extends Node {
     public outcome: string
     constructor(decision: string, outcome: string) {
         super(NodeType.Operation)
-        super(NodeType.Operation)
         this.decision = decision
         this.outcome = outcome
     }
