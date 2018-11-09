@@ -6,7 +6,7 @@ import { StringTokenizer } from "./tokenizers/string";
 import { SymbolTokenizer } from "./tokenizers/symbol";
 import { WordTokenizer } from "./tokenizers/word";
 import { NumberTokenizer } from "./tokenizers/number";
-import { VariableTokenizer } from "./tokenizers/variable";
+import { IdentifierTokenizer } from "./tokenizers/identifier";
 
 export class Tokenizer {
     private tokenizers: BaseTokenizer[]
@@ -28,6 +28,12 @@ export class Tokenizer {
             new SymbolTokenizer(TokenType.GreaterThan, ">"),
             new SymbolTokenizer(TokenType.GreaterThanEqual, ">="),
             new SymbolTokenizer(TokenType.LessThanEqual, "<="),
+            new WordTokenizer(TokenType.DoubleEquals, "is equal to"),
+            new WordTokenizer(TokenType.NotEquals, "is not equal"),
+            new WordTokenizer(TokenType.GreaterThanEqual, "is greater than or equal to"),
+            new WordTokenizer(TokenType.LessThanEqual, "is less than or equal to"),
+            new WordTokenizer(TokenType.GreaterThan, "is greater than"),
+            new WordTokenizer(TokenType.LessThan, "is less than"),
             new SymbolTokenizer(TokenType.Dot, "."),
             new SymbolTokenizer(TokenType.And, "&&"),
             new WordTokenizer(TokenType.And, "and"),
@@ -42,13 +48,9 @@ export class Tokenizer {
             new WordTokenizer(TokenType.Junction, "junction"),
             new WordTokenizer(TokenType.Diameter, "diameter"),
             new WordTokenizer(TokenType.Decision, "decision"),
-            new WordTokenizer(TokenType.DoubleEquals, "is equals to"),
-            new WordTokenizer(TokenType.NotEquals, "is not equals"),
-            new WordTokenizer(TokenType.GreaterThanEqual, "is greater than or equal to"),
-            new WordTokenizer(TokenType.LessThanEqual, "is less than or equal to"),
-            new WordTokenizer(TokenType.GreaterThan, "is greater than"),
-            new WordTokenizer(TokenType.LessThan, "is less than"),
-            new VariableTokenizer(),
+            new WordTokenizer(TokenType.Is, "is"),
+            new WordTokenizer(TokenType.Outcome, "outcome"),
+            new IdentifierTokenizer(),
         ];
     }
 

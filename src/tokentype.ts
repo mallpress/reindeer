@@ -2,6 +2,7 @@ export enum TokenType {
     Text,
     String,
     WhiteSpace,
+    Identifier,
     Number,
     ParenOpen,
     ParenClose,
@@ -25,4 +26,6 @@ export enum TokenType {
     Junction,
     Diameter,
     Decision,
+    Outcome,
+    Is,
 }
