@@ -11,6 +11,7 @@ import { TokenStream } from "../tokenstream";
 import { Node } from "../ast/node";
 import { BinaryOperator } from "../ast/enums/binaryoperator";
 import { ConditionGroup } from "../ast/conditiongroup";
+import { NodeType } from "../ast/nodetype";
 
 export class Parser {
     constructor() {
@@ -30,7 +31,7 @@ export class Parser {
                         switch(currentToken.type) {
                             case TokenType.Then:
                                 let operations = this.parseOperations(stream)
-                                let branch = new Branch(conds, operations);
+                                return new Branch(conds, operations);
                                 //console.log(JSON.stringify(branch, null, "\t"))
                                 finished = true
                                 break;
@@ -46,9 +47,9 @@ export class Parser {
     }
 
     private parseConditionals(stream: TokenStream, parenOpen: number = 0): Node {
-        let currentNode: Node | null = null
+        let prevNode: Node | null = null
         let finished = false
-        let lastPosition = 0;
+        let prevInGroup = false;
         while(stream.hasNext() && !finished) {
             let currentToken = stream.peek();
             switch(currentToken.type) {
@@ -56,16 +57,42 @@ export class Parser {
                 case TokenType.And:
                     stream.consume()
                     let operator = currentToken.type === TokenType.Or ? BinaryOperator.Or : BinaryOperator.And;
-                    if(!currentNode) throw new ParserError(`${currentToken.value} found, with nothing preceeding`, currentToken.position)
-                    let newGroup = new ConditionGroup(currentNode)
+                    if(!prevNode) throw new ParserError(`${currentToken.value} found, with nothing preceeding`, currentToken.position)
+                    let newGroup = new ConditionGroup(prevNode)
                     newGroup.operator = operator
-                    newGroup.right = this.parseConditionals(stream, parenOpen);
-                    return newGroup
+                    let nextToken = stream.peek()
+                    if(!nextToken) throw new ParserError(`${currentToken.value} found, with nothing after it`, currentToken.position)
+
+                    if(nextToken.type === TokenType.ParenOpen) {
+                        newGroup.right = this.parseConditionals(stream, parenOpen);
+                    } else {
+                        let newCond = this.parseConditional(stream)
+                        // need to handle the case of A || B && C, so we steal B
+                        // from the previous group and create a new group with B as left and set
+                        // the previous group's right to the new group this gives up A || (B && C)
+                        // this should only be done if the previous expression was not
+                        // in brackets, as that should be treated as fixeds
+                        if(currentToken.type === TokenType.And && !prevInGroup) {
+                            if(prevNode.nodeType == NodeType.ConditionGroup) {
+                                let prevGroup = prevNode as ConditionGroup;
+                                let newLeft = prevGroup.right as Node;
+                                newGroup = new ConditionGroup(newLeft)
+                                newGroup.operator = operator
+                                newGroup.right = newCond
+                                prevGroup.right = newGroup
+                                newGroup = prevGroup
+                            }   
+                        } else {
+                            newGroup.right = newCond
+                        }
+                    }
+                    prevNode = newGroup as Node
                     break;
                 case TokenType.ParenOpen:
                     parenOpen++;
                     stream.consume()
-                    currentNode = this.parseConditionals(stream, parenOpen);
+                    prevNode = this.parseConditionals(stream, parenOpen);
+                    prevInGroup = true;
                     break;
                 case TokenType.ParenClose:
                     parenOpen--;
@@ -77,11 +104,12 @@ export class Parser {
                     finished = true;
                     break;
                 default:
-                    currentNode = this.parseConditional(stream)
+                    prevNode = this.parseConditional(stream)
+                    prevInGroup = false
                     break;
             }
         }
-        return currentNode!
+        return prevNode!
     }
 
     private parseConditional(stream: TokenStream): Condition {
