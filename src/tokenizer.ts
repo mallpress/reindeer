@@ -7,6 +7,7 @@ import { SymbolTokenizer } from "./tokenizers/symbol";
 import { WordTokenizer } from "./tokenizers/word";
 import { NumberTokenizer } from "./tokenizers/number";
 import { IdentifierTokenizer } from "./tokenizers/identifier";
+import { BraceTokenizer } from "./tokenizers/brace";
 
 export class Tokenizer {
     private tokenizers: BaseTokenizer[]
@@ -14,10 +15,10 @@ export class Tokenizer {
     constructor() {
         this.tokenizers = [
             new PatternTokenizer(TokenType.WhiteSpace, "White Space", /\s/, true),
-            new PatternTokenizer(TokenType.ParenOpen, "Paren Open", /\(/),
-            new PatternTokenizer(TokenType.ParenClose, "Paren Close", /\)/),
-            new PatternTokenizer(TokenType.ParenClose, "Brace Open", /\{/),
-            new PatternTokenizer(TokenType.ParenClose, "Brace Close", /\}/),
+            new BraceTokenizer(TokenType.ParenOpen, "("),
+            new BraceTokenizer(TokenType.ParenClose, ")"),
+            new BraceTokenizer(TokenType.BraceOpen, "{"),
+            new BraceTokenizer(TokenType.BraceClose, "}"),
             new NumberTokenizer(),
             new StringTokenizer(),
             new SymbolTokenizer(TokenType.Not, "!"),

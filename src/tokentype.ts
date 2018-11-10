@@ -6,6 +6,8 @@ export enum TokenType {
     Number,
     ParenOpen,
     ParenClose,
+    BraceOpen,
+    BraceClose,
     Or,
     And,
     Not,
