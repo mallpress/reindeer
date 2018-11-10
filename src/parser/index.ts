@@ -81,8 +81,12 @@ export class Parser {
                                 newGroup.right = newCond
                                 prevGroup.right = newGroup
                                 newGroup = prevGroup
-                            }   
+                            } else {
+                                // if it was just a condition we can continue on as planned
+                                newGroup.right = newCond
+                            }
                         } else {
+                            // if it was an or, then we can continue on as planned
                             newGroup.right = newCond
                         }
                     }
