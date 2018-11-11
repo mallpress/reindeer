@@ -179,8 +179,7 @@ describe("Simple parser tests", () => {
         expect(branch.condition).toEqual(expectedCondition)
         expect(branch.condTrueBody).toEqual({"nodeType": "Sequence", "nodes": [{"decision": "A", "nodeType": "Operation", "outcome": "B"}]})
         expect(branch.condFalseBody).toBeUndefined()
-    })
-    
+    }) 
     
     it("IF ((A OR B) AND C) AND D THEN C", () => {
         let text = `IF ((${condA} OR ${condB}) AND ${condC}) AND ${condD} THEN DECISION 'A' outcome is 'B'`
@@ -205,6 +204,56 @@ describe("Simple parser tests", () => {
             },
             "operator": "AND",
             "right": condDRes
+        }
+
+        expect(branch.condition).toEqual(expectedCondition)
+        expect(branch.condTrueBody).toEqual({"nodeType": "Sequence", "nodes": [{"decision": "A", "nodeType": "Operation", "outcome": "B"}]})
+        expect(branch.condFalseBody).toBeUndefined()
+    })
+    
+    it("IF ((A OR B) AND C) AND (((D OR C) OR A) and D) AND B THEN C", () => {
+        let text = `IF ((${condA} OR ${condB}) AND ${condC}) AND (((${condD} OR ${condC}) OR ${condA}) AND ${condD}) AND ${condB} THEN DECISION 'A' outcome is 'B'`
+        let tokens = tokenizer.tokenize(text);
+        let ast = parser.parse(tokens);
+        expect(typeof ast).toBe("object");
+        let branch = ast as Branch;
+        expect(branch.nodeType).toBe("Branch");
+
+        let expectedCondition = {
+            "nodeType": "ConditionGroup",
+            "left": {
+                "nodeType": "ConditionGroup",
+                "left": {
+                    "nodeType": "ConditionGroup",
+                    "left": condARes,
+                    "operator": "OR",
+                    "right": condBRes
+                },
+                "operator": "AND",
+                "right": condCRes
+            },
+            "operator": "AND",
+            "right": {
+                "nodeType": "ConditionGroup",
+                "left": {
+                    "nodeType": "ConditionGroup",
+                    "left": {
+                        "nodeType": "ConditionGroup",
+                        "left": {
+                            "nodeType": "ConditionGroup",
+                            "left": condDRes,
+                            "operator": "OR",
+                            "right": condCRes
+                        },
+                        "operator": "OR",
+                        "right": condARes
+                    },
+                    "operator": "AND",
+                    "right": condDRes
+                },
+                "operator": "AND",
+                "right": condBRes
+            }
         }
 
         expect(branch.condition).toEqual(expectedCondition)
