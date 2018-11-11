@@ -55,8 +55,20 @@ export class Parser {
             switch(currentToken.type) {
                 case TokenType.Or:
                 case TokenType.And:
+                case TokenType.Not:
                     stream.consume()
-                    let operator = currentToken.type === TokenType.Or ? BinaryOperator.Or : BinaryOperator.And;
+                    let operator = BinaryOperator.And;
+                    switch(currentToken.type) {
+                        case TokenType.Or:
+                            operator = BinaryOperator.Or;
+                            break;
+                        case TokenType.And:
+                            operator = BinaryOperator.And;
+                            break;
+                        case TokenType.Not:
+                            operator = BinaryOperator.Not;
+                            break;
+                    }
                     if(!prevNode) throw new ParserError(`${currentToken.value} found, with nothing preceeding`, currentToken.position)
                     let newGroup = new ConditionGroup(prevNode)
                     newGroup.operator = operator

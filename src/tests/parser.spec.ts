@@ -80,6 +80,26 @@ describe("Simple parser tests", () => {
         expect(branch.condTrueBody).toEqual({"nodeType": "Sequence", "nodes": [{"decision": "A", "nodeType": "Operation", "outcome": "B"}]})
         expect(branch.condFalseBody).toBeUndefined()
     })
+    
+    it("IF (A NOT B) THEN C", () => {
+        let text = `IF (${condA} NOT ${condB}) THEN DECISION 'A' outcome is 'B'`
+        let tokens = tokenizer.tokenize(text);
+        let ast = parser.parse(tokens);
+        expect(typeof ast).toBe("object");
+        let branch = ast as Branch;
+        expect(branch.nodeType).toBe("Branch");
+
+        let expectedCondition = {
+            "nodeType": "ConditionGroup",
+            "left": {"nodeType": "Condition","refType": 2,"reference": "A","property": "outcome","operator": 0,"value": "Leave As Is"},
+            "operator": "NOT",
+            "right": {"nodeType": "Condition","refType": 0,"reference": "B","property": "diameter","operator": 3,"value": -1.001}
+        }
+
+        expect(branch.condition).toEqual(expectedCondition)
+        expect(branch.condTrueBody).toEqual({"nodeType": "Sequence", "nodes": [{"decision": "A", "nodeType": "Operation", "outcome": "B"}]})
+        expect(branch.condFalseBody).toBeUndefined()
+    })
         
     it("IF A OR B AND C THEN C", () => {
         let text = `IF ${condA} OR ${condB} AND Decision 'C' Outcome is equal to 'Leave As Is' THEN DECISION 'A' outcome is 'B'`
