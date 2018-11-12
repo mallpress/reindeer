@@ -5,4 +5,5 @@ export enum BooleanOperator {
     GreaterThanEqual,
     LessThan,
     GreaterThan,
+    In,
 }

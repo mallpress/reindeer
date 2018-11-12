@@ -8,6 +8,8 @@ export enum TokenType {
     ParenClose,
     BraceOpen,
     BraceClose,
+    SquareOpen,
+    SquareClose,
     Or,
     And,
     Not,
@@ -30,4 +32,6 @@ export enum TokenType {
     Decision,
     Outcome,
     Is,
+    Comma,
+    In,
 }

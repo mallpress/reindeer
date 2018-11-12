@@ -5,11 +5,11 @@ import { NodeType } from "./nodetype";
 
 export class Condition extends Node {
     public refType: ReferenceType
-    public reference: string
+    public reference: string | string[]
     public property: string
     public operator: BooleanOperator
     public value: any
-    constructor(refType: ReferenceType, reference: string, property: string, operator: BooleanOperator, value: any) {
+    constructor(refType: ReferenceType, reference: string | string[], property: string, operator: BooleanOperator, value: any) {
         super(NodeType.Condition)
         this.refType = refType
         this.reference = reference
