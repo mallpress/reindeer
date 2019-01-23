@@ -8,11 +8,11 @@ var path = require('path');
 const { promisify } = require('util');
 
 
-gulp.task('client', function () {
+gulp.task('default', function () {
     var extensions = ['.js', '.ts', '.json'];
     let b = browserify({
             extensions: extensions,
-            standalone: 'CheddarApp',
+            standalone: 'Reindeer',
             debug: false
         })
         .plugin('tsify', {
