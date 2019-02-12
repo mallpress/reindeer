@@ -33,7 +33,7 @@ export class Tokenizer {
             new SymbolTokenizer(TokenType.GreaterThanEqual, ">="),
             new SymbolTokenizer(TokenType.LessThanEqual, "<="),
             new WordTokenizer(TokenType.DoubleEquals, "is equal to"),
-            new WordTokenizer(TokenType.NotEquals, "is not equal"),
+            new WordTokenizer(TokenType.NotEquals, "is not equal to"),
             new WordTokenizer(TokenType.GreaterThanEqual, "is greater than or equal to"),
             new WordTokenizer(TokenType.LessThanEqual, "is less than or equal to"),
             new WordTokenizer(TokenType.GreaterThan, "is greater than"),
