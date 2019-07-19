@@ -231,17 +231,17 @@ describe("Simple parser tests", () => {
                 "nodeType": "ConditionGroup",
                 "left": {
                     "nodeType": "ConditionGroup",
-                    "left": condARes,
-                    "operator": "OR",
-                    "right": condBRes
+                    "left": {
+                        "nodeType": "ConditionGroup",
+                        "left": condARes,
+                        "operator": "OR",
+                        "right": condBRes
+                    },
+                    "operator": "AND",
+                    "right": condCRes
                 },
                 "operator": "AND",
-                "right": condCRes
-            },
-            "operator": "AND",
-            "right": {
-                "nodeType": "ConditionGroup",
-                "left": {
+                "right": {
                     "nodeType": "ConditionGroup",
                     "left": {
                         "nodeType": "ConditionGroup",
@@ -257,9 +257,9 @@ describe("Simple parser tests", () => {
                     "operator": "AND",
                     "right": condDRes
                 },
-                "operator": "AND",
-                "right": condBRes
-            }
+            },
+            "operator": "AND",
+            "right": condBRes
         }
 
         expect(branch.condition).toEqual(expectedCondition)

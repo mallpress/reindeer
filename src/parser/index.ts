@@ -72,32 +72,31 @@ export class Parser {
                     let nextToken = stream.peek()
                     if (!nextToken) throw new ParserError(`${currentToken.value} found, with nothing after it`, currentToken.position)
 
+                    let newCond = null;
+
                     if (nextToken.type === TokenType.ParenOpen) {
-                        newGroup.right = this.parseConditionals(stream, parenOpen);
+                        stream.consume()
+                        parenOpen++
+                        newCond = this.parseConditionals(stream, parenOpen);
                     } else {
-                        let newCond = this.parseConditional(stream)
-                        // need to handle the case of A || B && C, so we steal B
-                        // from the previous group and create a new group with B as left and set
-                        // the previous group's right to the new group this gives up A || (B && C)
-                        // this should only be done if the previous expression was not
-                        // in brackets, as that should be treated as fixeds
-                        if (currentToken.type === TokenType.And && !prevInGroup) {
-                            if (prevNode.nodeType == NodeType.ConditionGroup) {
-                                let prevGroup = prevNode as ConditionGroup;
-                                let newLeft = prevGroup.right as Node;
-                                newGroup = new ConditionGroup(newLeft)
-                                newGroup.operator = operator
-                                newGroup.right = newCond
-                                prevGroup.right = newGroup
-                                newGroup = prevGroup
-                            } else {
-                                // if it was just a condition we can continue on as planned
-                                newGroup.right = newCond
-                            }
-                        } else {
-                            // if it was an or, then we can continue on as planned
-                            newGroup.right = newCond
-                        }
+                        newCond = this.parseConditional(stream)
+                    }
+                    // need to handle the case of A || B && C, so we steal B
+                    // from the previous group and create a new group with B as left and set
+                    // the previous group's right to the new group this gives up A || (B && C)
+                    // this should only be done if the previous expression was not
+                    // in brackets, as that should be treated as fixeds
+                    if (!prevInGroup && currentToken.type === TokenType.And && prevNode.nodeType == NodeType.ConditionGroup) {
+                        let prevGroup = prevNode as ConditionGroup;
+                        let newLeft = prevGroup.right as Node;
+                        newGroup = new ConditionGroup(newLeft)
+                        newGroup.operator = operator
+                        newGroup.right = newCond
+                        prevGroup.right = newGroup
+                        newGroup = prevGroup
+                    } else {
+                        // if it was an or, then we can continue on as planned
+                        newGroup.right = newCond
                     }
                     prevNode = newGroup as Node
                     break;
@@ -105,7 +104,11 @@ export class Parser {
                     parenOpen++;
                     stream.consume()
                     prevNode = this.parseConditionals(stream, parenOpen);
-                    prevInGroup = true;
+                    if(prevNode.nodeType == NodeType.ConditionGroup) {
+                        prevInGroup = true;
+                    } else {
+                        prevInGroup = false;
+                    }
                     break;
                 case TokenType.ParenClose:
                     parenOpen--;
